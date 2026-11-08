@@ -1,24 +1,39 @@
 version: 2
 
+# Frontier: weekly instead of upstream Crest's monthly cadence.
+# Sparkle (pinned in project.yml through XcodeGen) is not visible to
+# Dependabot, so the weekly scheduled security review tracks it instead.
+
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: America/Halifax
     groups:
       workflow-actions:
         patterns:
           - "*"
     commit-message:
       prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - security-review
 
   - package-ecosystem: npm
     directory: /HelpCenter
     schedule:
-      interval: monthly
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: America/Halifax
     groups:
       help-center:
         patterns:
           - "*"
     commit-message:
       prefix: "chore(deps)"
+    labels:
+      - dependencies
