@@ -100,7 +100,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>CrestCloudKitContainerIdentifier</key>
-	<string>iCloud.com.pauldavis.crest</string>
+	<string>iCloud.ca.madebykai.frontier</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>LSMinimumSystemVersion</key>
@@ -127,13 +127,13 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/pauljoda/Crest/updates/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/drKAIz/Frontier/updates/appcast.xml</string>
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
+	<false/>
 	<key>SUScheduledCheckInterval</key>
 	<real>3600</real>
 	<key>SUAutomaticallyUpdate</key>
-	<true/>
+	<false/>
 	<key>CrestDefaultUpdateChannel</key>
 	<string>$(CREST_DEFAULT_UPDATE_CHANNEL)</string>
 	<key>SUPublicEDKey</key>

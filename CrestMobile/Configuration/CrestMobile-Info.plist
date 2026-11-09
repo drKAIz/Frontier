@@ -49,7 +49,7 @@
 	<key>CrestSystemPasswordWriteThroughManagedCapability</key>
 	<true/>
 	<key>CrestCloudKitContainerIdentifier</key>
-	<string>iCloud.com.pauldavis.crest</string>
+	<string>iCloud.ca.madebykai.frontier</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>

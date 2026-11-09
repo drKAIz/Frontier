@@ -1,0 +1,5 @@
+// Copy this file to Config/Frontier.local.xcconfig and fill in your team.
+// Find the team ID at developer.apple.com > Account > Membership details,
+// or in Xcode > Settings > Accounts.
+
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
