@@ -1,5 +1,7 @@
 #include "chrome/browser/ui/crest/crest_engine_binding.h"
 
+#include "chrome/browser/ui/crest/crest_request_filter.h"
+
 #include <algorithm>
 #include <cstring>
 #include <optional>
@@ -297,6 +299,8 @@ void CREST_CALL EngineBinding::Attach(void* context,
   binding->engine_ = engine;
   binding->report_ = report;
   binding->ask_ = ask;
+  // Requests check against the core's content filter from now on.
+  UseContentFilter(app);
 }
 
 template <typename Question>
@@ -316,6 +320,20 @@ std::optional<typename engine::EngineQuestionAnswer<Question>::Type> EngineBindi
 // static
 void CREST_CALL EngineBinding::Answered(void* context, const uint8_t* answer, size_t length) {
   static_cast<std::vector<uint8_t>*>(context)->assign(answer, answer + length);
+}
+
+bool EngineBinding::BlocksContent(const engine::Guid& page, const GURL& url) {
+  if (!url.SchemeIsHTTPOrHTTPS() || url.spec().size() > kLinkBytes) {
+    return false;
+  }
+  return Ask(engine::PageBlocksContent{.page_id = page, .url = url.spec()}).value_or(false);
+}
+
+std::string EngineBinding::InjectedScript(const engine::Guid& page, const GURL& url) {
+  if (!url.SchemeIsHTTPOrHTTPS() || url.spec().size() > kLinkBytes) {
+    return {};
+  }
+  return Ask(engine::PageInjectedScript{.page_id = page, .url = url.spec()}).value_or(std::string());
 }
 
 // static
@@ -796,7 +814,7 @@ bool EngineBinding::StageForPeek(EnginePage& page, content::OpenURLParams& param
   }
   params.crest_download_fallback = nullptr;
   PresentPeekSoon(page, engine::PeekRequested{.page_id = page.id(),
-                                              .url = PresentedURL(params.url),
+                                              .url = PlatformURL(params.url),
                                               .decision = engine::LinkNavigationDecision::kPeekModifier,
                                               .staged_link_id = link});
   return true;
@@ -822,7 +840,7 @@ bool EngineBinding::KeepsLinkForPeek(content::NavigationHandle& navigation) {
   if (!page) {
     return false;
   }
-  const std::string url = PresentedURL(navigation.GetURL());
+  const std::string url = PlatformURL(navigation.GetURL());
   const auto answer = Ask(engine::LinkActivation{
       .page_id = page->id(), .url = url, .gesture = {.user_activated = true, .top_level = true}});
   if (!answer || !OpensPeek(answer->decision)) {
@@ -903,7 +921,7 @@ bool EngineBinding::KeepsWindowLinkForPeek(content::NavigationHandle& navigation
     routed_tabs_.erase(routed);
     return false;
   }
-  const std::string url = PresentedURL(navigation.GetURL());
+  const std::string url = PlatformURL(navigation.GetURL());
   const auto answer = Ask(engine::LinkActivation{
       .page_id = source->id(), .url = url, .gesture = {.user_activated = true, .top_level = true}});
   if (!answer || !OpensPeek(answer->decision)) {
@@ -966,9 +984,11 @@ bool EngineBinding::LoadStagedLink(const std::string& key, const std::string& to
   }
   const StagedLink& link = *staged.mapped();
   const EnginePage* source = Find(link.source);
+  // The Peek asks for the link at the address it was told, as the platform
+  // holds it, so a link whose query keeps brackets still matches.
   if (!source || !source->web_contents() || source->profile() != page->profile() ||
       source->window() != page->window() || source->navigation_revision() != link.revision ||
-      source->navigation_generation() != link.generation || link.request.url != url ||
+      source->navigation_generation() != link.generation || PlatformURL(link.request.url) != PlatformURL(url) ||
       !page->web_contents()->GetController().IsInitialNavigation()) {
     return false;
   }

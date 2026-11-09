@@ -5185,6 +5185,62 @@
     "fullscreen-page-survives-space-swipe": {
       "category": "improved",
       "message": "On Mac, with Show sidebar on hover in full screen turned on, a full-screen page stays full screen when you swipe to another Space, and takes over the window again when you swipe back."
+    },
+    "peek-opens-bracketed-links": {
+      "category": "fixed",
+      "message": "Links on Facebook, and other links with brackets in their address, open in Peek instead of a blank page or an error page."
+    },
+    "sidebar-slides-as-one": {
+      "category": "improved",
+      "message": "On Mac and iPhone, the sidebar slides in together with its tabs, and going to a Space that isn’t next to the current one slides there instead of cutting. On Mac, the sidebar that floats over the page appears once the pointer rests at the window’s edge for a moment, stays open when the pointer moves out past that edge, and can be resized by dragging its edge."
+    },
+    "built-in-ad-blocking": {
+      "category": "new",
+      "message": "Crest blocks ads and trackers on every page, on Mac, iPhone and iPad, with EasyList, EasyPrivacy, uBlock Origin’s lists and a list for your language, which stay up to date on their own. Blocked ads leave no empty boxes, floating video players are hidden, and the lists’ fixes for sites that fight ad blockers run too. Add your own lists or filters in a Space’s privacy settings, choose Block Element to hide anything the lists miss, and turn blocking off for a site from the page’s actions."
+    },
+    "ad-hiding-out-of-sites-reach": {
+      "category": "improved",
+      "message": "On Chromium pages on Mac, sites can no longer see which of your blocking rules they match or bring back what Crest hides."
+    },
+    "add-to-home-screen": {
+      "category": "new",
+      "message": "On iPhone and iPad, Add to Home Screen in a page’s actions puts the site on your Home Screen, where it opens as a web app or, with Open as Web App off, in your default browser."
+    },
+    "full-screen-tab-close-crash": {
+      "category": "fixed",
+      "message": "On Mac, closing a tab while its Chromium page is full screen no longer makes Crest quit."
+    },
+    "full-screen-survives-page-moves": {
+      "category": "fixed",
+      "message": "On Chromium pages on Mac, a full-screen page stays full screen when it moves to its next slide or video, instead of dropping back inside the window’s border and sidebar."
+    },
+    "settings-smooth-with-lots-of-data": {
+      "category": "fixed",
+      "message": "On Mac, Settings stays smooth with hundreds of saved websites, passwords and site permissions: a Space’s Privacy and Passwords pages open quickly and scroll, search and remove without freezing."
+    },
+    "settings-search-field-takes-typing": {
+      "category": "fixed",
+      "message": "On Mac, clicking the search field above saved passwords or website data now lets you type in it."
+    },
+    "floating-sidebar-opens-lists": {
+      "category": "fixed",
+      "message": "On iPhone and iPad, History, Archive and Downloads from a keyboard shortcut, the menu bar or the command palette slide a hidden floating sidebar in with that list. A docked iPad sidebar stays docked, and an iPhone showing its tabs full screen opens the list as a sheet instead of doing nothing."
+    },
+    "floating-sidebar-leaves-on-scroll": {
+      "category": "improved",
+      "message": "On iPhone and iPad, scrolling or zooming the page puts a floating sidebar away, as tapping the page already did."
+    },
+    "floating-sidebar-hide-button": {
+      "category": "new",
+      "message": "On iPhone and iPad, a floating sidebar has an arrow at its bottom corner that slides it back off the screen."
+    },
+    "sidebar-edge-swipe-only": {
+      "category": "fixed",
+      "message": "On iPhone and iPad, a tap at the edge of the screen no longer brings out a hidden sidebar; swipe in from the edge instead."
+    },
+    "keyboard-hides-address-bar": {
+      "category": "improved",
+      "message": "On iPhone, the address bar slides out of the way while you type into a page, such as filling in a form, and comes back when the keyboard goes."
     }
   }
 }
