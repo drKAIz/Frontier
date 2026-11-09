@@ -8,10 +8,17 @@ person sees: the compiled string tables in every .lproj folder and the values
 of the bundle's Info.plist. Keys, identifiers, URL schemes and type names are
 left alone, because only the whole word "Crest" in a value is replaced.
 
+Xcode leaves a string out of the compiled source-language table when the
+catalog has no explicit value for it, and the app then shows the key itself.
+For those, the script reads the string catalogs and adds the branded key to
+the table, so every catalog string that says Crest reads Frontier.
+
 Usage: brand-app.py <path to built .app or .appex>
 """
 from __future__ import annotations
 
+import json
+import os
 import plistlib
 import re
 import subprocess
@@ -70,6 +77,37 @@ def brand_string_table(path: Path) -> int:
     return sum(1 for key in table if table[key] != branded[key])
 
 
+def add_missing_catalog_strings(resources: Path, catalog: Path) -> int:
+    """Add branded entries for catalog keys the compiled table left out."""
+    strings = json.loads(catalog.read_text(encoding="utf-8"))
+    language = strings.get("sourceLanguage", "en")
+    folder = resources / f"{language}.lproj"
+    if not folder.is_dir():
+        return 0
+    table_path = folder / f"{catalog.stem}.strings"
+    plurals_path = folder / f"{catalog.stem}.stringsdict"
+    table, binary = load(table_path) if table_path.is_file() else ({}, True)
+    plurals = load(plurals_path)[0] if plurals_path.is_file() else {}
+
+    added = 0
+    for key in strings.get("strings", {}):
+        if key in table or key in plurals or not UPSTREAM_NAME.search(key):
+            continue
+        table[key] = rebrand(key)
+        added += 1
+    if added:
+        save(table_path, table, binary)
+    return added
+
+
+def catalogs() -> list[Path]:
+    """String catalogs compiled into Frontier's bundles."""
+    source_root = os.environ.get("SRCROOT")
+    if not source_root:
+        return []
+    return sorted(Path(source_root, "CrestShared/Resources").glob("*.xcstrings"))
+
+
 def brand_info_plist(path: Path) -> int:
     info, binary = load(path)
     branded = rebrand(info)
@@ -97,6 +135,8 @@ def main() -> int:
     for table in sorted(resources.glob("*.lproj/*")):
         if table.suffix in {".strings", ".stringsdict"}:
             changed += brand_string_table(table)
+    for catalog in catalogs():
+        changed += add_missing_catalog_strings(resources, catalog)
     if info.is_file():
         changed += brand_info_plist(info)
 
