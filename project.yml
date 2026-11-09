@@ -3,8 +3,8 @@ configs:
   Debug: debug
   Release: release
 configFiles:
-  Debug: Config/Frontier.xcconfig
-  Release: Config/Frontier.xcconfig
+  Debug: Config/Version.xcconfig
+  Release: Config/Version.xcconfig
 options:
   bundleIdPrefix: ca.madebykai
   deploymentTarget:
@@ -15,6 +15,8 @@ settings:
   base:
     ARCHS: arm64
     CODE_SIGN_STYLE: Automatic
+    # Frontier: set to your Apple team ID (Xcode > Settings > Accounts).
+    DEVELOPMENT_TEAM: ""
     DEVELOPMENT_LANGUAGE: en
     ENABLE_HARDENED_RUNTIME: YES
     MACOSX_DEPLOYMENT_TARGET: "26.1"

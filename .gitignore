@@ -64,6 +64,3 @@ __pycache__/
 # Local investigation and submission artifacts
 /Documentation/Audits/
 /Documentation/Launch/
-
-# Frontier: personal signing settings
-Config/Frontier.local.xcconfig
