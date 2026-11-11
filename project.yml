@@ -6,7 +6,7 @@ configFiles:
   Debug: Config/Version.xcconfig
   Release: Config/Version.xcconfig
 options:
-  bundleIdPrefix: com.pauldavis
+  bundleIdPrefix: ca.madebykai
   deploymentTarget:
     iOS: "26.1"
     macOS: "26.1"
@@ -15,7 +15,8 @@ settings:
   base:
     ARCHS: arm64
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: 3U2R97HLXF
+    # Frontier: set to your Apple team ID (Xcode > Settings > Accounts).
+    DEVELOPMENT_TEAM: ""
     DEVELOPMENT_LANGUAGE: en
     ENABLE_HARDENED_RUNTIME: YES
     MACOSX_DEPLOYMENT_TARGET: "26.1"
@@ -69,6 +70,9 @@ targetTemplates:
           - "$(CREST_CORE_LIBRARY_DIR)/CrestCore.Native.dylib"
         outputFiles:
           - "$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/CrestCore.Native.dylib"
+      - name: Show Frontier branding
+        script: python3 "$SRCROOT/Scripts/Frontier/brand-app.py" "$TARGET_BUILD_DIR/$WRAPPER_NAME"
+        basedOnDependencyAnalysis: false
   PortableCoreMobile:
     settings:
       base:
@@ -99,6 +103,9 @@ targetTemplates:
           - "$(CREST_CORE_FRAMEWORK_DIR)/CrestCoreABI.framework/CrestCoreABI"
         outputFiles:
           - "$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/CrestCoreABI.framework/CrestCoreABI"
+      - name: Show Frontier branding
+        script: python3 "$SRCROOT/Scripts/Frontier/brand-app.py" "$TARGET_BUILD_DIR/$WRAPPER_NAME"
+        basedOnDependencyAnalysis: false
   # The Chromium host framework has one composition and two identities: the
   # isolated review framework and the normal product framework. Only the Swift
   # compilation conditions differ, so both build from this template.
@@ -146,7 +153,7 @@ targetTemplates:
       - sdk: Security.framework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.pauldavis.crest.chromium-ui
+        PRODUCT_BUNDLE_IDENTIFIER: ca.madebykai.frontier.chromium-ui
         PRODUCT_MODULE_NAME: CrestChromiumUI
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: Crest
@@ -233,7 +240,8 @@ targets:
         INFOPLIST_FILE: CrestMac/Configuration/Crest-Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: Crest
         ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "CrestWinter CrestLion CrestStorm CrestDragon CrestMeadow CrestIron CrestRiver CrestSun CrestVigil"
-        CREST_NATIVE_CORE_BUNDLE_IDENTIFIER: com.pauldavis.crest.native-core
+        CREST_NATIVE_CORE_BUNDLE_IDENTIFIER: ca.madebykai.frontier.native-core
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
         PRODUCT_BUNDLE_IDENTIFIER: "$(CREST_NATIVE_CORE_BUNDLE_IDENTIFIER)"
         PRODUCT_MODULE_NAME: Crest
         PRODUCT_NAME: CrestNativeCore
@@ -256,6 +264,9 @@ targets:
           - "$(CREST_CORE_LIBRARY_DIR)/CrestCore.Native.dylib"
         outputFiles:
           - "$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/CrestCore.Native.dylib"
+      - name: Show Frontier branding
+        script: python3 "$SRCROOT/Scripts/Frontier/brand-app.py" "$TARGET_BUILD_DIR/$WRAPPER_NAME"
+        basedOnDependencyAnalysis: false
   CrestNativeCoreTests:
     type: bundle.unit-test
     platform: macOS
@@ -289,7 +300,7 @@ targets:
       - target: CrestNativeCore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.pauldavis.crest.native-core.tests
+        PRODUCT_BUNDLE_IDENTIFIER: ca.madebykai.frontier.native-core.tests
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited)"
         SWIFT_INCLUDE_PATHS: "$(PROJECT_DIR)/CrestContracts/include"
         GENERATE_INFOPLIST_FILE: YES
@@ -299,6 +310,9 @@ targets:
   Crest:
     templates: [PortableCoreMac]
     type: application
+    # Frontier: the installed app is Frontier.app; the target and scheme keep
+    # Crest's names so syncing with Crest stays clean.
+    productName: Frontier
     platform: macOS
     sources:
       - path: Documentation/ReleaseNotes.json
@@ -343,10 +357,10 @@ targets:
         INFOPLIST_FILE: CrestMac/Configuration/Crest-Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: Crest
         ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "CrestWinter CrestLion CrestStorm CrestDragon CrestMeadow CrestIron CrestRiver CrestSun CrestVigil"
-        CREST_MAC_BUNDLE_IDENTIFIER: com.pauldavis.crest
+        CREST_MAC_BUNDLE_IDENTIFIER: ca.madebykai.frontier
         PRODUCT_BUNDLE_IDENTIFIER: "$(CREST_MAC_BUNDLE_IDENTIFIER)"
         PRODUCT_MODULE_NAME: Crest
-        PRODUCT_NAME: Crest
+        PRODUCT_NAME: Frontier
         CREST_DEFAULT_UPDATE_CHANNEL: development
   # crest-browser, the helper agents run over stdio to reach the Crest app it
   # ships inside (Contents/Helpers). Mac only.
@@ -360,7 +374,7 @@ targets:
       base:
         PRODUCT_NAME: crest-browser
         PRODUCT_MODULE_NAME: CrestBrowserHelper
-        PRODUCT_BUNDLE_IDENTIFIER: com.pauldavis.crest.browser-helper
+        PRODUCT_BUNDLE_IDENTIFIER: ca.madebykai.frontier.browser-helper
         GENERATE_INFOPLIST_FILE: YES
         CREATE_INFOPLIST_SECTION_IN_BINARY: YES
         SKIP_INSTALL: YES
@@ -374,7 +388,7 @@ targets:
       - path: CrestMac/Features/AppIcon/BrowserMacDockTileView.swift
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.pauldavis.crest.docktileplugin
+        PRODUCT_BUNDLE_IDENTIFIER: ca.madebykai.frontier.docktileplugin
         PRODUCT_NAME: CrestDockTilePlugin
         PRODUCT_MODULE_NAME: CrestDockTilePlugin
         WRAPPER_EXTENSION: docktileplugin
@@ -398,8 +412,8 @@ targets:
         SWIFT_INCLUDE_PATHS: "$(inherited) $(PROJECT_DIR)/CrestContracts/include"
         BUNDLE_LOADER: "$(TEST_HOST)"
         GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.pauldavis.crest.tests
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Crest.app/Contents/MacOS/Crest"
+        PRODUCT_BUNDLE_IDENTIFIER: ca.madebykai.frontier.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Frontier.app/Contents/MacOS/Frontier"
   CrestMobileNativeCore:
     type: application
     platform: iOS
@@ -428,7 +442,8 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: CrestMobile/Configuration/CrestMobile-Info.plist
         IPHONEOS_DEPLOYMENT_TARGET: "26.1"
-        CREST_MOBILE_BUNDLE_IDENTIFIER: com.pauldavis.crest.mobile-native-core
+        CREST_MOBILE_BUNDLE_IDENTIFIER: ca.madebykai.frontier.mobile-native-core
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
         PRODUCT_BUNDLE_IDENTIFIER: "$(CREST_MOBILE_BUNDLE_IDENTIFIER)"
         PRODUCT_MODULE_NAME: CrestMobile
         PRODUCT_NAME: CrestNativeCore
@@ -456,14 +471,17 @@ targets:
           - "$(CREST_CORE_FRAMEWORK_DIR)/CrestCoreABI.framework/CrestCoreABI"
         outputFiles:
           - "$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/CrestCoreABI.framework/CrestCoreABI"
+      - name: Show Frontier branding
+        script: python3 "$SRCROOT/Scripts/Frontier/brand-app.py" "$TARGET_BUILD_DIR/$WRAPPER_NAME"
+        basedOnDependencyAnalysis: false
   CrestMobile:
     templates: [PortableCoreMobile]
     type: application
     platform: iOS
     # Scheme BuildableName is derived from productName, not the PRODUCT_NAME
-    # build setting. Keep both as Crest so `xcodegen generate` reproduces the
-    # committed schemes instead of emitting CrestMobile.app.
-    productName: Crest
+    # build setting. Frontier names both Frontier so the installed app is
+    # Frontier.app.
+    productName: Frontier
     sources:
       - path: Documentation/ReleaseNotes.json
         buildPhase: resources
@@ -486,10 +504,10 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: CrestMobile/Configuration/CrestMobile-Info.plist
         IPHONEOS_DEPLOYMENT_TARGET: "26.1"
-        CREST_MOBILE_BUNDLE_IDENTIFIER: com.pauldavis.crest
+        CREST_MOBILE_BUNDLE_IDENTIFIER: ca.madebykai.frontier
         PRODUCT_BUNDLE_IDENTIFIER: "$(CREST_MOBILE_BUNDLE_IDENTIFIER)"
         PRODUCT_MODULE_NAME: CrestMobile
-        PRODUCT_NAME: Crest
+        PRODUCT_NAME: Frontier
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: Crest
         ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "CrestWinter CrestLion CrestStorm CrestDragon CrestMeadow CrestIron CrestRiver CrestSun CrestVigil"
@@ -509,11 +527,16 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: CrestShareExtension/Info.plist
         IPHONEOS_DEPLOYMENT_TARGET: "26.1"
-        CREST_MOBILE_BUNDLE_IDENTIFIER: com.pauldavis.crest
+        CREST_MOBILE_BUNDLE_IDENTIFIER: ca.madebykai.frontier
         PRODUCT_BUNDLE_IDENTIFIER: $(CREST_MOBILE_BUNDLE_IDENTIFIER).share
         PRODUCT_MODULE_NAME: CrestShareExtension
         PRODUCT_NAME: CrestShareExtension
         TARGETED_DEVICE_FAMILY: "1,2"
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    postBuildScripts:
+      - name: Show Frontier branding
+        script: python3 "$SRCROOT/Scripts/Frontier/brand-app.py" "$TARGET_BUILD_DIR/$WRAPPER_NAME"
+        basedOnDependencyAnalysis: false
   CrestMobileTests:
     type: bundle.unit-test
     platform: iOS
@@ -527,9 +550,9 @@ targets:
         SWIFT_INCLUDE_PATHS: "$(inherited) $(PROJECT_DIR)/CrestContracts/include"
         BUNDLE_LOADER: "$(TEST_HOST)"
         GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.pauldavis.crest.mobile.tests
+        PRODUCT_BUNDLE_IDENTIFIER: ca.madebykai.frontier.mobile.tests
         TARGETED_DEVICE_FAMILY: "1,2"
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Crest.app/Crest"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Frontier.app/Frontier"
 schemes:
   # The app schemes source Config/Crest.lldbinit, so the debugger never
   # stops on the core runtime's own signals.
