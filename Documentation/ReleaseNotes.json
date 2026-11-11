@@ -5241,6 +5241,58 @@
     "keyboard-hides-address-bar": {
       "category": "improved",
       "message": "On iPhone, the address bar slides out of the way while you type into a page, such as filling in a form, and comes back when the keyboard goes."
+    },
+    "ad-blocking-settings": {
+      "category": "improved",
+      "message": "Ad blocking has its own page in Settings and applies to every Space alike. Choose Off, Balanced or Strict, which also hides cookie notices and other annoyances, then turn single lists on or off, update them all at once, subscribe to more lists by address, write your own rules, and see the sites where blocking is off."
+    },
+    "ad-blocking-settings-review-fixes": {
+      "category": "internal",
+      "message": "Keep a site turned off from a persistent Space after a private window turned it off, and show the level a migrated device starts at as soon as its Spaces open"
+    },
+    "start-page-tap-puts-keyboard-away": {
+      "category": "fixed",
+      "message": "On iPhone and iPad, tapping the Start Page outside its search field puts the keyboard away."
+    },
+    "chromium-upstream-157-0-8103-39": {
+      "category": "fixed",
+      "message": "Chromium is updated to 157.0.8103.39 with upstream security and compatibility fixes."
+    },
+    "chromium-protected-video-opens-in-webkit": {
+      "category": "fixed",
+      "message": "On Mac, a page in Chromium that asks for protected video, such as a streaming service's player, now switches to WebKit to play it with FairPlay instead of failing in Chromium."
+    },
+    "chromium-pages-load-after-157": {
+      "category": "fixed",
+      "message": "On Mac, pages in Chromium load again instead of stopping with \"This page stopped responding\" after updating to 0.8.215."
+    },
+    "content-filter-download-resumes": {
+      "category": "internal",
+      "message": "Resume the content filter download when the connection cuts it short, so Xcode Cloud archives no longer fail building the core"
+    },
+    "floating-sidebar-hide-arrow-removed": {
+      "category": "improved",
+      "message": "On iPhone and iPad, a floating sidebar no longer has an arrow to hide it, on the sidebar or in the side toolbar; scroll or tap the page to put it away."
+    },
+    "crest-0-9-sub-spaces-ad-blocking-chromium": {
+      "category": "new",
+      "message": "Crest 0.9 brings Sub-Spaces, which let several Spaces share one set of sign-ins while each keeps its own tabs and look, built-in ad blocking on Mac, iPhone and iPad, and a Chromium engine built from Chromium itself, now at 157. Quick Windows and Peek do more, and Crest can follow the system's light or dark appearance."
+    },
+    "chromium-upstream-157-0-8103-51": {
+      "category": "fixed",
+      "message": "Chromium is updated to 157.0.8103.51, which fixes CVE-2026-125350, a security flaw being exploited in the wild, and eight other security flaws."
+    },
+    "private-browsing-space-never-locks": {
+      "category": "fixed",
+      "message": "The Private Browsing Space no longer offers a lock, which on iPhone could lock it with no way back in until Crest was quit. The lock setting for other Spaces now names Face ID on devices that have it."
+    },
+    "arc-import-shared-profile-spaces": {
+      "category": "fixed",
+      "message": "On Mac, importing from Arc no longer quits Crest when Spaces that share an Arc profile aren't next to each other in Arc; they come in together, each with its own tabs."
+    },
+    "browser-import-keeps-spaces-without-passwords": {
+      "category": "fixed",
+      "message": "On Mac, when Crest can't unlock another browser's passwords during an import, as when Keychain access is denied, the import still brings that browser's Spaces and tabs and leaves only the passwords behind."
     }
   }
 }

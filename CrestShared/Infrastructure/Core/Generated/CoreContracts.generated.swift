@@ -307,6 +307,7 @@ enum Rejection: Equatable, Error, Sendable {
     case pinsOneTabAtATime(PinsOneTabAtATime)
     case primaryCannotJoin(PrimaryCannotJoin)
     case primaryCannotSeparate(PrimaryCannotSeparate)
+    case privateSpaceCannotLock(PrivateSpaceCannotLock)
     case privateSpaceCannotShare(PrivateSpaceCannotShare)
     case privateWorkspaceBoundary(PrivateWorkspaceBoundary)
     case profileInUse(ProfileInUse)
@@ -416,6 +417,7 @@ enum Rejection: Equatable, Error, Sendable {
         case .pinsOneTabAtATime(let value): value.message
         case .primaryCannotJoin(let value): value.message
         case .primaryCannotSeparate(let value): value.message
+        case .privateSpaceCannotLock(let value): value.message
         case .privateSpaceCannotShare(let value): value.message
         case .profileInUse(let value): value.message
         case .saveFailed(let value): value.message
@@ -3081,6 +3083,8 @@ struct FilterListState: Equatable, Sendable {
 }
 
 struct FilterLists: Equatable, Sendable {
+    let level: ContentBlockingLevel
+    let isCustomized: Bool
     let lists: [FilterListState]
     let customLists: [CustomFilterListState]
     let customFilters: String
@@ -5236,6 +5240,14 @@ struct PrimaryCannotSeparate: Equatable, Sendable {
     }
 }
 
+struct PrivateSpaceCannotLock: Equatable, Sendable {
+    let workspaceID: UUID
+
+    var message: LocalizedStringResource {
+        LocalizedStringResource("Private windows can't be locked.")
+    }
+}
+
 struct PrivateSpaceCannotShare: Equatable, Sendable {
     let workspaceID: UUID
 
@@ -5404,6 +5416,9 @@ struct RecoverPage: Equatable, Sendable {
 
 struct RecoveryCheckpointUnusable: Equatable, Sendable {
     let reason: StorageFailure
+}
+
+struct RefreshFilterLists: Intent, Equatable, Sendable {
 }
 
 struct RefreshPageIcon: PageRequest, Equatable, Sendable {
@@ -6022,6 +6037,10 @@ struct SetBrowsingPreferences: Intent, SessionIntent, Equatable, Sendable {
 
 struct SetCloudSyncEnabled: Intent, CloudSyncControlIntent, Equatable, Sendable {
     let isEnabled: Bool
+}
+
+struct SetContentBlockingLevel: Intent, Equatable, Sendable {
+    let level: ContentBlockingLevel
 }
 
 struct SetCredentialPreferences: Intent, SessionIntent, Equatable, Sendable {
@@ -9903,6 +9922,96 @@ struct CloudZoneLoss: Hashable, Sendable {
         init(name: String, restoresLocalRecords: Bool) {
             self.name = name
             self.restoresLocalRecords = restoresLocalRecords
+        }
+    }
+}
+
+/// The members of the core's `ContentBlockingLevel`. A member's wire tag is its index in `all`.
+struct ContentBlockingLevel: Hashable, Sendable {
+    let tag: Int
+    var name: String { facts.name }
+    var title: LocalizedStringResource { facts.title }
+    var summary: LocalizedStringResource { facts.summary }
+    var blocksContent: Bool { facts.blocksContent }
+    var includesStrictLists: Bool { facts.includesStrictLists }
+    private let facts: Facts
+
+    private init(
+        tag: Int,
+        name: String,
+        title: LocalizedStringResource,
+        summary: LocalizedStringResource,
+        blocksContent: Bool,
+        includesStrictLists: Bool
+    ) {
+        self.tag = tag
+        facts = Facts(
+            name: name,
+            title: title,
+            summary: summary,
+            blocksContent: blocksContent,
+            includesStrictLists: includesStrictLists
+        )
+    }
+
+    static let off = ContentBlockingLevel(
+        tag: 0,
+        name: "off",
+        title: LocalizedStringResource("Off"),
+        summary: LocalizedStringResource("Crest doesn’t block ads or trackers."),
+        blocksContent: false,
+        includesStrictLists: false
+    )
+    static let balanced = ContentBlockingLevel(
+        tag: 1,
+        name: "balanced",
+        title: LocalizedStringResource("Balanced"),
+        summary: LocalizedStringResource("Blocks ads and trackers while keeping sites working."),
+        blocksContent: true,
+        includesStrictLists: false
+    )
+    static let strict = ContentBlockingLevel(
+        tag: 2,
+        name: "strict",
+        title: LocalizedStringResource("Strict"),
+        summary: LocalizedStringResource("Also hides cookie notices and other annoyances. A few sites may not work."),
+        blocksContent: true,
+        includesStrictLists: true
+    )
+
+    static let all: [ContentBlockingLevel] = [off, balanced, strict]
+
+    static func named(_ name: String?) -> ContentBlockingLevel? {
+        all.first { $0.name == name }
+    }
+
+    static func == (lhs: ContentBlockingLevel, rhs: ContentBlockingLevel) -> Bool {
+        lhs.tag == rhs.tag
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(tag)
+    }
+
+    private final class Facts: Sendable {
+        let name: String
+        let title: LocalizedStringResource
+        let summary: LocalizedStringResource
+        let blocksContent: Bool
+        let includesStrictLists: Bool
+
+        init(
+            name: String,
+            title: LocalizedStringResource,
+            summary: LocalizedStringResource,
+            blocksContent: Bool,
+            includesStrictLists: Bool
+        ) {
+            self.name = name
+            self.title = title
+            self.summary = summary
+            self.blocksContent = blocksContent
+            self.includesStrictLists = includesStrictLists
         }
     }
 }
@@ -13859,6 +13968,7 @@ struct FilterList: Hashable, Sendable {
     var group: FilterListGroup { facts.group }
     var source: String { facts.source }
     var isDefault: Bool { facts.isDefault }
+    var isStrict: Bool { facts.isStrict }
     var languages: [String] { facts.languages }
     private let facts: Facts
 
@@ -13869,6 +13979,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup,
         source: String,
         isDefault: Bool,
+        isStrict: Bool,
         languages: [String]
     ) {
         self.tag = tag
@@ -13878,6 +13989,7 @@ struct FilterList: Hashable, Sendable {
             group: group,
             source: source,
             isDefault: isDefault,
+            isStrict: isStrict,
             languages: languages
         )
     }
@@ -13889,6 +14001,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://easylist.to/easylist/easylist.txt",
         isDefault: true,
+        isStrict: false,
         languages: []
     )
     static let easyPrivacy = FilterList(
@@ -13898,6 +14011,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://easylist.to/easylist/easyprivacy.txt",
         isDefault: true,
+        isStrict: false,
         languages: []
     )
     static let uBlockFilters = FilterList(
@@ -13907,6 +14021,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://ublockorigin.github.io/uAssets/filters/filters.min.txt",
         isDefault: true,
+        isStrict: false,
         languages: []
     )
     static let uBlockPrivacy = FilterList(
@@ -13916,6 +14031,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://ublockorigin.github.io/uAssets/filters/privacy.min.txt",
         isDefault: true,
+        isStrict: false,
         languages: []
     )
     static let uBlockBadware = FilterList(
@@ -13925,6 +14041,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://ublockorigin.github.io/uAssets/filters/badware.min.txt",
         isDefault: true,
+        isStrict: false,
         languages: []
     )
     static let uBlockQuickFixes = FilterList(
@@ -13934,6 +14051,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://ublockorigin.github.io/uAssets/filters/quick-fixes.min.txt",
         isDefault: true,
+        isStrict: false,
         languages: []
     )
     static let uBlockUnbreak = FilterList(
@@ -13943,6 +14061,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://ublockorigin.github.io/uAssets/filters/unbreak.min.txt",
         isDefault: true,
+        isStrict: false,
         languages: []
     )
     static let adGuardBase = FilterList(
@@ -13952,6 +14071,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.ads,
         source: "https://filters.adtidy.org/extension/ublock/filters/2_without_easylist.txt",
         isDefault: false,
+        isStrict: true,
         languages: []
     )
     static let easyListGermany = FilterList(
@@ -13961,6 +14081,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://easylist.to/easylistgermany/easylistgermany.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["de"]
     )
     static let listeFr = FilterList(
@@ -13970,6 +14091,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://easylist-downloads.adblockplus.org/liste_fr.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["fr"]
     )
     static let easyListItaly = FilterList(
@@ -13979,6 +14101,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://easylist-downloads.adblockplus.org/easylistitaly.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["it"]
     )
     static let easyListDutch = FilterList(
@@ -13988,6 +14111,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://easylist-downloads.adblockplus.org/easylistdutch.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["nl"]
     )
     static let easyListSpanish = FilterList(
@@ -13997,6 +14121,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://easylist-downloads.adblockplus.org/easylistspanish.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["es"]
     )
     static let easyListPolish = FilterList(
@@ -14006,6 +14131,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://easylist-downloads.adblockplus.org/easylistpolish.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["pl"]
     )
     static let easyListChina = FilterList(
@@ -14015,6 +14141,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://easylist-downloads.adblockplus.org/easylistchina.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["zh"]
     )
     static let adGuardJapanese = FilterList(
@@ -14024,6 +14151,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://filters.adtidy.org/extension/ublock/filters/7.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["ja"]
     )
     static let adGuardRussian = FilterList(
@@ -14033,6 +14161,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://filters.adtidy.org/extension/ublock/filters/1.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["ru", "uk", "be"]
     )
     static let adGuardTurkish = FilterList(
@@ -14042,6 +14171,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.regional,
         source: "https://filters.adtidy.org/extension/ublock/filters/13.txt",
         isDefault: false,
+        isStrict: false,
         languages: ["tr"]
     )
     static let easyListCookie = FilterList(
@@ -14051,6 +14181,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.annoyances,
         source: "https://secure.fanboy.co.nz/fanboy-cookiemonster_ubo.txt",
         isDefault: false,
+        isStrict: true,
         languages: []
     )
     static let adGuardAnnoyances = FilterList(
@@ -14060,6 +14191,7 @@ struct FilterList: Hashable, Sendable {
         group: FilterListGroup.annoyances,
         source: "https://filters.adtidy.org/extension/ublock/filters/14.txt",
         isDefault: false,
+        isStrict: true,
         languages: []
     )
 
@@ -14104,14 +14236,24 @@ struct FilterList: Hashable, Sendable {
         let group: FilterListGroup
         let source: String
         let isDefault: Bool
+        let isStrict: Bool
         let languages: [String]
 
-        init(name: String, title: String, group: FilterListGroup, source: String, isDefault: Bool, languages: [String]) {
+        init(
+            name: String,
+            title: String,
+            group: FilterListGroup,
+            source: String,
+            isDefault: Bool,
+            isStrict: Bool,
+            languages: [String]
+        ) {
             self.name = name
             self.title = title
             self.group = group
             self.source = source
             self.isDefault = isDefault
+            self.isStrict = isStrict
             self.languages = languages
         }
     }
@@ -24763,6 +24905,7 @@ struct WorkspaceKind: Hashable, Sendable {
     var ownsSpaces: Bool { facts.ownsSpaces }
     var keepsAppPreferences: Bool { facts.keepsAppPreferences }
     var isPractice: Bool { facts.isPractice }
+    var locksSpaces: Bool { facts.locksSpaces }
     private let facts: Facts
 
     private init(
@@ -24773,7 +24916,8 @@ struct WorkspaceKind: Hashable, Sendable {
         isPrivate: Bool,
         ownsSpaces: Bool,
         keepsAppPreferences: Bool,
-        isPractice: Bool
+        isPractice: Bool,
+        locksSpaces: Bool
     ) {
         self.tag = tag
         facts = Facts(
@@ -24783,7 +24927,8 @@ struct WorkspaceKind: Hashable, Sendable {
             isPrivate: isPrivate,
             ownsSpaces: ownsSpaces,
             keepsAppPreferences: keepsAppPreferences,
-            isPractice: isPractice
+            isPractice: isPractice,
+            locksSpaces: locksSpaces
         )
     }
 
@@ -24795,7 +24940,8 @@ struct WorkspaceKind: Hashable, Sendable {
         isPrivate: false,
         ownsSpaces: true,
         keepsAppPreferences: true,
-        isPractice: false
+        isPractice: false,
+        locksSpaces: true
     )
     static let `private` = WorkspaceKind(
         tag: 1,
@@ -24805,7 +24951,8 @@ struct WorkspaceKind: Hashable, Sendable {
         isPrivate: true,
         ownsSpaces: true,
         keepsAppPreferences: false,
-        isPractice: false
+        isPractice: false,
+        locksSpaces: false
     )
     static let borrowed = WorkspaceKind(
         tag: 2,
@@ -24815,7 +24962,8 @@ struct WorkspaceKind: Hashable, Sendable {
         isPrivate: false,
         ownsSpaces: false,
         keepsAppPreferences: false,
-        isPractice: false
+        isPractice: false,
+        locksSpaces: true
     )
     static let practice = WorkspaceKind(
         tag: 3,
@@ -24825,7 +24973,8 @@ struct WorkspaceKind: Hashable, Sendable {
         isPrivate: false,
         ownsSpaces: true,
         keepsAppPreferences: false,
-        isPractice: true
+        isPractice: true,
+        locksSpaces: true
     )
 
     static let all: [WorkspaceKind] = [persistent, `private`, borrowed, practice]
@@ -24850,6 +24999,7 @@ struct WorkspaceKind: Hashable, Sendable {
         let ownsSpaces: Bool
         let keepsAppPreferences: Bool
         let isPractice: Bool
+        let locksSpaces: Bool
 
         init(
             name: String,
@@ -24858,7 +25008,8 @@ struct WorkspaceKind: Hashable, Sendable {
             isPrivate: Bool,
             ownsSpaces: Bool,
             keepsAppPreferences: Bool,
-            isPractice: Bool
+            isPractice: Bool,
+            locksSpaces: Bool
         ) {
             self.name = name
             self.opensDirectly = opensDirectly
@@ -24867,6 +25018,7 @@ struct WorkspaceKind: Hashable, Sendable {
             self.ownsSpaces = ownsSpaces
             self.keepsAppPreferences = keepsAppPreferences
             self.isPractice = isPractice
+            self.locksSpaces = locksSpaces
         }
     }
 }
